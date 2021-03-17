@@ -123061,13 +123061,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.User = void 0;
 
-var faker_1 = __importDefault(require("faker")); // !initially it was giving a warning as typescript was not able to figure out type of faker. In order to fix that run 'npm install --save @types/faker'. @types/faker is a type definition file for faker module 
+var faker_1 = __importDefault(require("faker")); // !initially it was giving a warning as typescript was not able to figure out type of faker. In order to fix that run 'npm install --save @types/faker'. @types/faker is a type definition file for faker module
+// !implements is used to ensure Mappable is applicable to User
 
 
 var User =
 /** @class */
 function () {
   function User() {
+    this.color = 'blue';
     this.name = faker_1.default.name.firstName();
     this.location = {
       // !parseFloat converts a string into decimal value
@@ -123075,6 +123077,10 @@ function () {
       lng: parseFloat(faker_1.default.address.longitude())
     };
   }
+
+  User.prototype.markerContent = function () {
+    return "\n    <div>\n    <h1>User Name: " + this.name + "</h1>\n    </div>\n    ";
+  };
 
   return User;
 }();
@@ -123106,13 +123112,66 @@ function () {
       lat: parseFloat(faker_1.default.address.latitude()),
       lng: parseFloat(faker_1.default.address.longitude())
     };
-  }
+    this.color = 'green';
+  } // !markerContent is a method that returns a string
+
+
+  Company.prototype.markerContent = function () {
+    return "\n  <div>\n  <h1>Company Name: " + this.companyName + "</h1>\n  <h3>Company Phrase: " + this.catchPhrase + "</h3>\n  </div>\n  ";
+  };
 
   return Company;
 }();
 
 exports.Company = Company;
-},{"faker":"node_modules/faker/index.js"}],"src/index.ts":[function(require,module,exports) {
+},{"faker":"node_modules/faker/index.js"}],"src/CustomMap.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CustomMap = void 0;
+
+var CustomMap =
+/** @class */
+function () {
+  // !initialising 
+  function CustomMap(divId) {
+    this.googleMap = new google.maps.Map(document.getElementById(divId), {
+      zoom: 1,
+      center: {
+        lat: 0,
+        lng: 0
+      }
+    });
+  } // ! mappable (argument) should has the properties defined inside interface Mappable
+
+
+  CustomMap.prototype.addMarker = function (mappable) {
+    var _this = this;
+
+    var marker = new google.maps.Marker({
+      map: this.googleMap,
+      position: {
+        lat: mappable.location.lat,
+        lng: mappable.location.lng
+      }
+    }); // !add event listner to marker
+
+    marker.addListener('click', function () {
+      var infoWindow = new google.maps.InfoWindow({
+        // !content is a property of InfoWindow with type string
+        content: mappable.markerContent()
+      });
+      infoWindow.open(_this.googleMap, marker);
+    });
+  };
+
+  return CustomMap;
+}();
+
+exports.CustomMap = CustomMap;
+},{}],"src/index.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -123123,18 +123182,16 @@ var User_1 = require("./User");
 
 var Company_1 = require("./Company");
 
+var CustomMap_1 = require("./CustomMap");
+
 var user = new User_1.User(); // console.log("user=>", user)
 
 var company = new Company_1.Company(); // console.log("company=>", company)
 
-new google.maps.Map(document.getElementById('map'), {
-  zoom: 1,
-  center: {
-    lat: 0,
-    lng: 0
-  }
-});
-},{"./User":"src/User.ts","./Company":"src/Company.ts"}],"../../../../.nvm/versions/node/v14.8.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+var customMap = new CustomMap_1.CustomMap('map');
+customMap.addMarker(user);
+customMap.addMarker(company);
+},{"./User":"src/User.ts","./Company":"src/Company.ts","./CustomMap":"src/CustomMap.ts"}],"../../../../.nvm/versions/node/v14.8.0/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -123162,7 +123219,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54723" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53547" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
